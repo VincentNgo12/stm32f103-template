@@ -19,10 +19,11 @@ LDFLAGS = -T $(LINKER_FILE)
 
 
 # Source files
-SRC = src/main.c src/startup.c ./vendor/CMSIS/Device/ST/STM32F1/Source/Templates/system_stm32f1xx.c 
+SRC = src/main.c src/startup.c
+BUILD_DIR = ./build
 
-# Object files (replace .c with .o)
-OBJ = $(addprefix $(BUILD_DIR)/, $(SRC:.c=.o))
+# Object files will all go into the build/ directory
+OBJ = $(addprefix $(BUILD_DIR)/, $(notdir $(SRC:.c=.o)))
 
 
 # -----------------------------------------------------------------------------
@@ -31,20 +32,24 @@ OBJ = $(addprefix $(BUILD_DIR)/, $(SRC:.c=.o))
 all: $(PROGRAM).elf
 
 # Link object files into final ELF
-$(PROGRAM).elf: $(OBJ)
+$(PROGRAM).elf: $(OBJ) $(BUILD_DIR)/system_stm32f1xx.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ -o $(PROGRAM).elf
 
 #Compile each C files into obj file (inside build folder).
 $(BUILD_DIR)/%.o: src/%.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+#Compile system_stm32f1xx file independently
+$(BUILD_DIR)/system_stm32f1xx.o: ./vendor/CMSIS/Device/ST/STM32F1/Source/Templates/system_stm32f1xx.c 
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
 
 # -----------------------------------------------------------------------------
 # Cleaning
 # -----------------------------------------------------------------------------
 .PHONY: clean
 clean:
-	rm -f *.o *.elf
-
+	rm -f $(BUILD_DIR)/*.o *.elf
 # -----------------------------------------------------------------------------
 # Flashing to target (using OpenOCD and ST-Link)
 # -----------------------------------------------------------------------------

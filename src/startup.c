@@ -1,6 +1,4 @@
-/* 
- * startup.c
- * STM32F103 Startup code
+/* * startup.c * STM32F103 Startup code
  * - Sets up the interrupt vector table
  * - Initializes .data and .bss sections
  * - Calls main()
@@ -67,10 +65,9 @@
  extern uint32_t _etext, _sdata, _edata, _sbss, _ebss;
  
  /* Main application entry point */
- void main(void);
+ int main(void);
  
- /* Reset handler: program entry after MCU reset */
- void reset_handler(void)
+ /* Reset handler: program entry after MCU reset */ void reset_handler(void)
  {
      /* Copy .data section from Flash to SRAM */
      uint32_t data_size = (uint32_t)&_edata - (uint32_t)&_sdata;
@@ -97,7 +94,7 @@
  
 
 //Prevent crashing in case main() was not defined
-__attribute__((weak)) void main(void)
+__attribute__((weak)) int main(void)
 {
     while(1);
 }
