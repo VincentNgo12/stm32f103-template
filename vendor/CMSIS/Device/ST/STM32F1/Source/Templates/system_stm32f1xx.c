@@ -186,6 +186,35 @@ void SystemInit (void)
 #if defined(USER_VECT_TAB_ADDRESS)
   SCB->VTOR = VECT_TAB_BASE_ADDRESS | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal SRAM. */
 #endif /* USER_VECT_TAB_ADDRESS */
+
+
+//===PLL + HSE configurations===
+  // Enable HSE (High Speed External)
+  RCC->CR |= RCC_CR_HSEON;
+  while (!(RCC->CR & RCC_CR_HSERDY)); // Wait for HSE ready
+
+  // Configure Flash prefetch and latency
+  FLASH->ACR |= FLASH_ACR_PRFTBE;     // Enable Prefetch Buffer
+  FLASH->ACR &= ~FLASH_ACR_LATENCY;
+  FLASH->ACR |= FLASH_ACR_LATENCY_2;  // Flash 2 wait states for 72 MHz
+
+  // Set HSE as PLL source and set PLL multiplier to 9 (8 MHz * 9 = 72 MHz)
+  RCC->CFGR |= RCC_CFGR_PLLSRC;       // HSE as PLL source
+  RCC->CFGR |= RCC_CFGR_PLLMULL9;     // PLL = x9
+
+  // Set APB1 prescaler to /2 (max 36 MHz)
+  RCC->CFGR |= RCC_CFGR_PPRE1_DIV2;
+
+  // Enable PLL
+  RCC->CR |= RCC_CR_PLLON;
+  while (!(RCC->CR & RCC_CR_PLLRDY)); // Wait for PLL ready
+
+  // Select PLL as system clock
+  RCC->CFGR |= RCC_CFGR_SW_PLL;
+  while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL); // Wait for switch
+
+  // Optional: Update SystemCoreClock
+  SystemCoreClockUpdate();
 }
 
 /**
