@@ -49,6 +49,7 @@ $(BUILD_DIR)/system_stm32f1xx.o: ./vendor/CMSIS/Device/ST/STM32F1/Source/Templat
 # Cleaning
 # -----------------------------------------------------------------------------
 .PHONY: clean
+
 clean:
 	rm -f $(BUILD_DIR)/*.o *.elf
 # -----------------------------------------------------------------------------
@@ -59,3 +60,16 @@ PROGRAMMER_FLAGS=-f /usr/share/openocd/scripts/interface/stlink-v2.cfg -f /usr/s
 
 flash: $(PROGRAM).elf
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) -c "program $(PROGRAM).elf verify reset exit"
+
+
+# -----------------------------------------------------------------------------
+# Debug Rules
+# -----------------------------------------------------------------------------
+.PHONY: debug
+debug: all
+	@echo "Starting OpenOCD..."
+	openocd -f /usr/share/openocd/scripts/interface/stlink-v2.cfg -f /usr/share/openocd/scripts/target/stm32f1x.cfg & \
+	PID=$$!; \
+	sleep 2; \
+	gdb-multiarch -ex "target extended-remote :3333" -ex "monitor reset halt" $(PROGRAM).elf; \
+	kill $$PID
