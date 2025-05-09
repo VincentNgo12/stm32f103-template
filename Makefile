@@ -65,11 +65,18 @@ flash: $(PROGRAM).elf
 # -----------------------------------------------------------------------------
 # Debug Rules
 # -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Debug Mode
+# -----------------------------------------------------------------------------
+$(PROGRAM)-debug.elf: $(OBJ) $(BUILD_DIR)/system_stm32f1xx.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -g3 -Og $^ -o $(PROGRAM)-debug.elf
+
 .PHONY: debug
-debug: all
+debug: $(PROGRAM)-debug.elf
 	@echo "Starting OpenOCD..."
 	openocd -f /usr/share/openocd/scripts/interface/stlink-v2.cfg -f /usr/share/openocd/scripts/target/stm32f1x.cfg & \
 	PID=$$!; \
 	sleep 2; \
-	gdb-multiarch -ex "target extended-remote :3333" -ex "monitor reset halt" $(PROGRAM).elf; \
+	gdb-multiarch -ex "target extended-remote :3333" -ex "monitor reset halt" $(PROGRAM)-debug.elf; \
 	kill $$PID
