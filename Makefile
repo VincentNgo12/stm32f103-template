@@ -2,6 +2,8 @@
 # Makefile for STM32F103 baremetal project
 # -----------------------------------------------------------------------------
 
+DEBUG ?= 0  # Default to not debug mode
+
 # Project name (no extension)
 PROGRAM = blink
 
@@ -13,6 +15,10 @@ CPPFLAGS = -DSTM32F103xB \
 	-Ivendor/CMSIS/CMSIS/Core/Include \
 	-Isrc \
 	-Iinclude
+
+ifeq ($(DEBUG),1)
+  CFLAGS += -g3 -Og  # Add debug flags if in debug mode
+endif
 
 # Linker file
 LINKER_FILE = linker_script.ld
@@ -73,7 +79,8 @@ $(PROGRAM)-debug.elf: $(OBJ) $(BUILD_DIR)/system_stm32f1xx.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -g3 -Og $^ -o $(PROGRAM)-debug.elf
 
 .PHONY: debug
-debug: $(PROGRAM)-debug.elf
+debug:
+	$(MAKE) DEBUG=1 $(PROGRAM)-debug.elf 
 	@echo "Starting OpenOCD..."
 	openocd -f /usr/share/openocd/scripts/interface/stlink-v2.cfg -f /usr/share/openocd/scripts/target/stm32f1x.cfg & \
 	PID=$$!; \
